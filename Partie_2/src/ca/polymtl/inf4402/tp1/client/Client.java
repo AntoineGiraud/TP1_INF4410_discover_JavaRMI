@@ -44,7 +44,7 @@ public class Client {
 		int iterations = 20;
 		appelNormal();
 		System.out.println("arguement 10 exposant i;temps moyen appel normal de "+iterations+" iterations");
-		for (int i = 1; i <= 11; i++) {
+		for (int i = 1; i <= 8; i++) {
 			long moyenne = mesureTempsAppelNormal((int) Math.pow(10, i), iterations);
 			System.out.println(i+";"+moyenne);
 		}
