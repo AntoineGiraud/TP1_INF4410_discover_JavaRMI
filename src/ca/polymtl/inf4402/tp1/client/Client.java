@@ -41,14 +41,30 @@ public class Client {
 	}
 
 	private void run() {
+		int iterations = 20;
 		appelNormal();
+		System.out.println("arguement 10 exposant i;temps moyen appel normal de "+iterations+" iterations");
+		for (int i = 1; i <= 8; i++) {
+			long moyenne = mesureTempsAppelNormal((int) Math.pow(10, i), iterations);
+			System.out.println(i+";"+moyenne);
+		}
 
 		if (localServerStub != null) {
 			appelRMILocal();
+			System.out.println("arguement 10 exposant i;temps moyen appelRMILocal de "+iterations+" iterations");
+			for (int i = 1; i <= 8; i++) {
+				long moyenne = mesureTempsAppelRMILocal((int) Math.pow(10, i), iterations);
+				System.out.println(i+";"+moyenne);
+			}
 		}
 
 		if (distantServerStub != null) {
 			appelRMIDistant();
+			System.out.println("arguement 10 exposant i;temps moyen appelRMIDistant de "+iterations+" iterations");
+			for (int i = 1; i <= 8; i++) {
+				long moyenne = mesureTempsAppelRMIDistant((int) Math.pow(10, i), iterations);
+				System.out.println(i+";"+moyenne);
+			}
 		}
 	}
 
@@ -71,19 +87,39 @@ public class Client {
 	}
 
 	private void appelNormal() {
+		byte[] b = new byte[10];
+		for (int i = 0; i < b.length; i++) {
+            b[i] = (byte)(0xA2);
+		}
+		System.out.println((byte)(0xA2));
 		long start = System.nanoTime();
-		int result = localServer.execute(4, 7);
+		localServer.execute(b);
 		long end = System.nanoTime();
 
 		System.out.println("Temps écoulé appel normal: " + (end - start)
 				+ " ns");
-		System.out.println("Résultat appel normal: " + result);
+	}
+	
+	private long mesureTempsAppelNormal(int nbOctects, int iterations) {
+		byte[] b = new byte[nbOctects];
+		// for (int i = 0; i < b.length; i++) {
+		//     b[i] = (byte)(0xA2);
+		// }
+		long moyenneAppelNormal = 0;
+		for (int i = 0; i < iterations; i++) {
+			long start = System.nanoTime();
+			localServer.execute(b);
+			long end = System.nanoTime();
+			long tps = end - start;
+			moyenneAppelNormal += tps; 
+		}
+		return moyenneAppelNormal / iterations;
 	}
 
 	private void appelRMILocal() {
 		try {
 			long start = System.nanoTime();
-			int result = localServerStub.execute(4, 7);
+			int result = localServerStub.execute((int)(10e8), (int)(10e1));
 			long end = System.nanoTime();
 
 			System.out.println("Temps écoulé appel RMI local: " + (end - start)
@@ -93,12 +129,31 @@ public class Client {
 			System.out.println("Erreur: " + e.getMessage());
 		}
 	}
+	
+	private long mesureTempsAppelRMILocal(int nbOctects, int iterations) {
+		byte[] b = new byte[nbOctects];
+		// for (int i = 0; i < b.length; i++) {
+		//     b[i] = (byte)(0xA2);
+		// }
+		long moyenneAppelNormal = 0;
+		for (int i = 0; i < iterations; i++) {
+			long start = System.nanoTime();
+			try {
+				localServerStub.execute(b);
+			} catch (RemoteException e) { System.out.println("Erreur: " + e.getMessage()); }
+			long end = System.nanoTime();
+			long tps = end - start;
+			moyenneAppelNormal += tps; 
+		}
+		return moyenneAppelNormal / iterations;
+	}
 
 	private void appelRMIDistant() {
 		try {
 			long start = System.nanoTime();
-			int result = distantServerStub.execute(4, 7);
+			int result = distantServerStub.execute((int)(10e8), (int)(10e1));
 			long end = System.nanoTime();
+			System.out.println((int)(8*10e6));
 
 			System.out.println("Temps écoulé appel RMI distant: "
 					+ (end - start) + " ns");
@@ -107,4 +162,23 @@ public class Client {
 			System.out.println("Erreur: " + e.getMessage());
 		}
 	}
+	
+	private long mesureTempsAppelRMIDistant(int nbOctects, int iterations) {
+		byte[] b = new byte[nbOctects];
+		// for (int i = 0; i < b.length; i++) {
+        //     b[i] = (byte)(0xA2);
+		// }
+		long moyenneAppelNormal = 0;
+		for (int i = 0; i < iterations; i++) {
+			long start = System.nanoTime();
+			try {
+				distantServerStub.execute(b);
+			} catch (RemoteException e) { System.out.println("Erreur: " + e.getMessage()); }
+			long end = System.nanoTime();
+			long tps = end - start;
+			moyenneAppelNormal += tps; 
+		}
+		return moyenneAppelNormal / iterations;
+	}
+	
 }
