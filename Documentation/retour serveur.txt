@@ -1,13 +1,16 @@
 Temps écoulé appel normal: 2881 ns
 arguement 10 exposant i;temps moyen appel normal de 20 iterations
-1;170
-2;138
-3;138
-4;189917
-5;108
-6;111
-7;251
-8;137
+1;288
+2;254
+3;231
+4;231
+5;255
+6;406
+7;485
+8;442
+
+
+
 Temps écoulé appel RMI local: 978260 ns
 Résultat appel RMI local: 1000000100
 arguement 10 exposant i;temps moyen appelRMILocal de 20 iterations
@@ -19,7 +22,16 @@ arguement 10 exposant i;temps moyen appelRMILocal de 20 iterations
 6;1130432
 7;7049599
 8;74887243
-80000000
+
+1;626222
+2;860915
+3;579510
+4;1045917
+5;1757672
+6;5862302
+7;43715844
+8;263752037
+
 Temps écoulé appel RMI distant: 1765416 ns
 Résultat appel RMI distant: 1000000100
 arguement 10 exposant i;temps moyen appelRMIDistant de 20 iterations
@@ -31,3 +43,4 @@ arguement 10 exposant i;temps moyen appelRMIDistant de 20 iterations
 6;86208520
 7;853101245
 8;8542826282
+
