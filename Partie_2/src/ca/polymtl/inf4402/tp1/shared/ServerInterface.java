@@ -11,8 +11,18 @@ public interface ServerInterface extends Remote {
 	 * Celui-ci est sauvegardé dans un fichier local et est retransmis au serveur lors de l'appel à lock() ou push().
 	 * Cette méthode est destinée à être appelée par l'application client lorsque nécessaire (il n'y a pas de commande generateclientid visible à l'utilisateur).
 	 * @return int ID du nouveau client
+	 * @throws RemoteException
 	 */
 	int generateclientid() throws RemoteException;
+	/**
+	 * Vérifie si l'identifiant du client est déjà pris. Génère un identifiant unique pour le client sinon.
+	 * Celui-ci est sauvegardé dans un fichier local et est retransmis au serveur lors de l'appel à lock() ou push().
+	 * Cette méthode est destinée à être appelée par l'application client lorsque nécessaire (il n'y a pas de commande generateclientid visible à l'utilisateur).
+	 * @param clientId
+	 * @return int ID du nouveau client
+	 * @throws RemoteException
+	 */
+	int generateclientid(int clientId) throws RemoteException;
 	
 	/**
 	 * Crée un fichier vide sur le serveur avec le nom spécifié.
@@ -35,7 +45,7 @@ public interface ServerInterface extends Remote {
 	 * Demande au serveur d'envoyer la dernière version du fichier spécifié.
 	 * Le fichier est écrit dans le répertoire local courant.
 	 * @param nom Nom du fichier que l'on recherche
-	 * @return File le fichier avec tous ses attributs.
+	 * @return File le fichier avec tous ses attributs ou null si on ne l'a pas trouvé.
 	 * @throws RemoteException
 	 */
 	Fichier get(String nom) throws RemoteException;
@@ -46,7 +56,7 @@ public interface ServerInterface extends Remote {
 	 * L'opération échoue si le fichier est déjà verrouillé par un autre client.
 	 * @param nom
 	 * @param clientid
-	 * @return File le fichier avec tous ses attributs.
+	 * @return File le fichier avec tous ses attributs ou null si on ne l'a pas trouvé ou si qqn l'a déjà vérouillé.
 	 * @throws RemoteException
 	 */
 	Fichier lock(String nom, int clientid) throws RemoteException;
@@ -62,7 +72,4 @@ public interface ServerInterface extends Remote {
 	 * @throws RemoteException
 	 */
 	boolean push(String nom, byte[] contenu, int clientid) throws RemoteException;
-
-	int execute(int a, int b) throws RemoteException;
-	void execute(byte[] arg) throws RemoteException;
 }

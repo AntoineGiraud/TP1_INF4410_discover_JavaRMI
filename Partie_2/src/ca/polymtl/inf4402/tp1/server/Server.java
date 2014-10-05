@@ -1,5 +1,10 @@
 package ca.polymtl.inf4402.tp1.server;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.rmi.ConnectException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -19,13 +24,33 @@ public class Server implements ServerInterface {
 	}
 	
 	private ArrayList<Fichier> ListeFichiers;
-	private Integer lastClientId;
+	private ArrayList<Integer> ListeClients;
+	private String pathServerFolder;
 
 	public Server() {
 		super();
 		ListeFichiers = new ArrayList<Fichier>();
-		lastClientId = 0;
+		ListeClients = new ArrayList<Integer>();
+		pathServerFolder = "server_files";
+		
+		// Mettre à jour la liste des fichiers présents sur le serveur
+        getAllFile(new File(pathServerFolder));
+
 	}
+	
+	public void getAllFile(File file) {
+        if (file.exists()) {
+            if (file.isFile()) {
+            	ListeFichiers.add(new Fichier(file.getName(), pathServerFolder));
+            } else if (file.isDirectory()) {
+                File[] tabTmp = file.listFiles();
+                for (File f : tabTmp) {
+                    getAllFile(f);
+                }
+            }
+        }
+    }
+    
 
 	private void run() {
 		if (System.getSecurityManager() == null) {
@@ -40,53 +65,32 @@ public class Server implements ServerInterface {
 			registry.rebind("server", stub);
 			System.out.println("Server ready.");
 		} catch (ConnectException e) {
-			System.err
-					.println("Impossible de se connecter au registre RMI. Est-ce que rmiregistry est lancé ?");
+			System.err.println("Impossible de se connecter au registre RMI. Est-ce que rmiregistry est lancé ?");
 			System.err.println();
 			System.err.println("Erreur: " + e.getMessage());
 		} catch (Exception e) {
 			System.err.println("Erreur: " + e.getMessage());
 		}
 	}
-	
-	@Override
-	public int generateclientid() {
-		return lastClientId++;
-	}
-
-	/*
-	 * Méthode accessible par RMI. Additionne les deux nombres passés en
-	 * paramètre.
-	 */
-	@Override
-	public int execute(int a, int b) throws RemoteException {
-		return a + b;
-	}
-
-	/*
-	 * Autre méthode accessible par RMI. Elle prend un tableau afin de pouvoir
-	 * lui envoyer des arguments de taille variable.
-	 */
-	@Override
-	public void execute(byte[] arg) throws RemoteException {
-		return;
-	}
 
 	@Override
 	public boolean create(String nom) throws RemoteException {
 		for (Fichier f : ListeFichiers) {
-			if (f.getNomFichier() == nom)
+			if (f.getNomFichier().contentEquals(nom))
 				return false;
 		}
-		ListeFichiers.add(new Fichier(nom));
+		ListeFichiers.add(new Fichier(nom, pathServerFolder));
+		System.out.println("Fichier "+nom+" ajouté !");
 		return true;
 	}
 
 	@Override
 	public Hashtable<String, Integer> list() throws RemoteException {
+		System.out.println("Liste des fichiers : ");
 		Hashtable<String, Integer> liste = new Hashtable<String, Integer>();
 		for (Fichier f : ListeFichiers) {
 			liste.put(f.getNomFichier(), f.getClientId());
+			System.out.println("* "+f.getNomFichier()+" - #"+f.getClientId());
 		}
 		return liste;
 	}
@@ -94,9 +98,11 @@ public class Server implements ServerInterface {
 	@Override
 	public Fichier get(String nom) throws RemoteException {
 		for (Fichier f : ListeFichiers) {
-			if (f.getNomFichier() == nom)
+			if (f.getNomFichier().equals(nom)){
 				return f;
+			}
 		}
+		System.out.println("Fichier "+nom+" non trouvé !");
 		return null;
 	}
 
@@ -104,11 +110,13 @@ public class Server implements ServerInterface {
 	public Fichier lock(String nom, int clientid) throws RemoteException {
 		for (int i = 0; i < ListeFichiers.size(); i++) {
 			Fichier f = ListeFichiers.get(i);
-			if (f.getNomFichier() == nom && f.lockFile(clientid)){ // Si on a le même nom de fichier, et si on arrive à locker le file c'est bon
+			if (f.getNomFichier().equals(nom) && f.lockFile(clientid)){ // Si on a le même nom de fichier, et si on arrive à locker le file c'est bon
 				ListeFichiers.set(i, f); // On met à jour notre fichier que l'on vient de locker au client voulu
+				System.out.println("Fichier "+nom+" locked par #"+clientid);
 				return f;
 			}
 		}
+		System.out.println("Fichier "+nom+" non trouvé ! - #"+clientid);
 		return null;
 	}
 
@@ -116,13 +124,30 @@ public class Server implements ServerInterface {
 	public boolean push(String nom, byte[] contenu, int clientid) throws RemoteException {
 		for (int i = 0; i < ListeFichiers.size(); i++) {
 			Fichier f = ListeFichiers.get(i);
-			if (f.getNomFichier() == nom && f.getClientId() == clientid){
+			if (f.getNomFichier().equals(nom) && f.getClientId() == clientid){
 				f.setFilecontent(contenu);
 				f.unlockFile();
 				ListeFichiers.set(i, f); // On met à jour notre fichier que l'on vient de locker au client voulu
+				f.writeInFile(pathServerFolder); // on sauvegarde notre fichier sur le disque dur.
+				System.out.println("Fichier "+nom+" MAJ & unlocked par #"+clientid);
 				return true;
 			}
 		}
+		System.out.println("Fichier "+nom+" non trouvé ! - #"+clientid);
 		return false;
+	}
+
+	@Override
+	public int generateclientid(int clientId) throws RemoteException {
+		if (Integer.valueOf(clientId) > 0 && ListeClients.contains(Integer.valueOf(clientId)))
+			return clientId;
+		else
+			return this.generateclientid();
+	}
+	@Override
+	public int generateclientid() {
+		int id = (int) (Math.random()*10000)+1;
+		ListeClients.add(id);
+		return id;
 	}
 }
