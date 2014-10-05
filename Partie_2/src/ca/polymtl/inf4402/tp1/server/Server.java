@@ -1,10 +1,6 @@
 package ca.polymtl.inf4402.tp1.server;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.rmi.ConnectException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -16,6 +12,11 @@ import java.util.Hashtable;
 import ca.polymtl.inf4402.tp1.shared.Fichier;
 import ca.polymtl.inf4402.tp1.shared.ServerInterface;
 
+/**
+ * <p>confer {@link ServerInterface} pour les explications sur cette classe et ses méthodes.</p>
+ * @author Antoine Giraud #1761581
+ *
+ */
 public class Server implements ServerInterface {
 
 	public static void main(String[] args) {
@@ -35,9 +36,13 @@ public class Server implements ServerInterface {
 		
 		// Mettre à jour la liste des fichiers présents sur le serveur
         getAllFile(new File(pathServerFolder));
-
 	}
 	
+	/**
+	 * <p>Petite fonction récursive qui va nous permettre de parcourir le répertoire de notre serveur où sont situés les fichiers que l'on reçoit des clients.<br>
+	 * Cela va nous permetter de pouvoir garder nos fichiers entre deux sessions.</p>
+	 * @param file File notre répertoir et puis ses fichiers - récursivité
+	 */
 	public void getAllFile(File file) {
         if (file.exists()) {
             if (file.isFile()) {
@@ -51,7 +56,9 @@ public class Server implements ServerInterface {
         }
     }
     
-
+	/**
+	 * Connection au registre RMI et enregistrement de la classe server
+	 */
 	private void run() {
 		if (System.getSecurityManager() == null) {
 			System.setSecurityManager(new SecurityManager());
@@ -110,10 +117,14 @@ public class Server implements ServerInterface {
 	public Fichier lock(String nom, int clientid) throws RemoteException {
 		for (int i = 0; i < ListeFichiers.size(); i++) {
 			Fichier f = ListeFichiers.get(i);
-			if (f.getNomFichier().equals(nom) && f.lockFile(clientid)){ // Si on a le même nom de fichier, et si on arrive à locker le file c'est bon
-				ListeFichiers.set(i, f); // On met à jour notre fichier que l'on vient de locker au client voulu
-				System.out.println("Fichier "+nom+" locked par #"+clientid);
-				return f;
+			if (f.getNomFichier().equals(nom)){ // Si on a le même nom de fichier, et si on arrive à locker le file c'est bon
+				if (f.lockFile(clientid)) {
+					ListeFichiers.set(i, f); // On met à jour notre fichier que l'on vient de locker au client voulu
+					System.out.println("Fichier "+nom+" locked par #"+clientid);
+					return f;
+				}else{
+					System.out.println("Echec: le fichier "+nom+" appartient au client #"+f.getClientId());return null;
+				}
 			}
 		}
 		System.out.println("Fichier "+nom+" non trouvé ! - #"+clientid);
@@ -146,8 +157,18 @@ public class Server implements ServerInterface {
 	}
 	@Override
 	public int generateclientid() {
-		int id = (int) (Math.random()*10000)+1;
+		int id = this.getRandomNumber();
+		while (ListeClients.contains(id)) {
+			id = this.getRandomNumber();
+		}
 		ListeClients.add(id);
 		return id;
+	}
+	/**
+	 * Fonction pour générer un nombre aléatoire
+	 * @return int random number
+	 */
+	private int getRandomNumber() {
+		return (int) (Math.random()*100000)+1;
 	}
 }

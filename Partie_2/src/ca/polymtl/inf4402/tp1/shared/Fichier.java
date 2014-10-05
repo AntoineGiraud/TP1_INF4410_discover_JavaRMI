@@ -11,8 +11,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * @author Antoine
- *
+ * <p>Cette classe nous est très utile car elle nous permet d'avoir une classe pour gérer nos fichiers et leurs propriétés.</p>
+ * <p>On pourra même écrire sur le disque dur le contenu du fichier pour le conserver autrement qu'en mémoire.</p>
+ * <p>la classe n'est pas faite pour gérer l'arboressance. <br>
+ * Cependant, pour un soucis de clarté dans l'organisation des fichiers sur notre serveur, on va pouvoir indiquer vers quel répertoire l'on souhaite enregistrer les fichiers.<br>
+ * C'est au programme qui va utiliser les objets Fichiers de passer en argument un chemin vers le dossier dans lequel placer les fichiers.</p>
+ * 
+ * @author Antoine Giraud #1761581
  */
 public class Fichier implements Serializable {
 	/**
@@ -23,22 +28,22 @@ public class Fichier implements Serializable {
 	private Integer clientid;
 	private byte[] contenu;
 	
+	public Fichier(String nom){
+		this.nom = nom;
+		this.clientid = 0;
+		this.setFromFile("");
+	}
 	public Fichier(String nom,String path){
 		this.nom = nom;
 		this.clientid = 0;
 		this.setFromFile(path);
 	}
 	
-	public Fichier(Fichier f){
-		copyInFile(f);	
-	}
-	
-	public void copyInFile(Fichier f){
-		this.nom = f.nom;
-		this.clientid = f.clientid;
-		this.contenu = f.contenu;
-	}
-	
+	/**
+	 * <p>Va à la fois répondre si le fichier est vérouillé et le vérouiller si l'on peut le faire.</p>
+	 * @param clientId int Identifiant du client qui cherche à vérouiller le fichier
+	 * @return boolean Est ce que le fichier est vérouillé ou non
+	 */
 	public boolean lockFile(int clientId){
 		if(this.clientid == 0 || this.clientid == clientId){ // Le fichier n'appartient pas à qqn (ou à la limite on l'a déjà locké nous même), on peut le locker
 			this.clientid = clientId;
@@ -46,7 +51,9 @@ public class Fichier implements Serializable {
 		}
 		return false;
 	}
-	
+	/**
+	 * Fonction pour dévérouiller le fichier, on remet l'identifiant à 0 car il ne correspond à personne
+	 */
 	public void unlockFile(){
 		this.clientid = 0;
 	}
@@ -57,9 +64,17 @@ public class Fichier implements Serializable {
 	public int getClientId(){
 		return this.clientid;
 	}
+	/**
+	 * Retourne le contenu du fichier contenu dans la "mémoire vive". Ce n'est pas forcément ce qui est dans le fichier du même nom sur le disque dur.
+	 * @return byte[] Tableau des bytes dont le fichier est composé
+	 */
 	public byte[] getFilecontent(){
 		return this.contenu;
 	}
+	/**
+	 * On assigne à notre fichier un nouveau contenu.
+	 * @param contenu byte[] C'est le contenu en byte de notre nouveau fichier.
+	 */
 	public void setFilecontent(byte[] contenu){
 		this.contenu = contenu;
 	}
@@ -77,19 +92,24 @@ public class Fichier implements Serializable {
 		} catch (IOException e) { e.printStackTrace(); }
 		this.contenu = null;
 	}
+	public void setFromFile(){
+		this.setFromFile("");
+	}
 	/**
-	 * On écrit dans le fichier voulu le contenu du fichier que l'on a en mémoire.
+	 * <p>On écrit dans le fichier voulu le contenu du fichier que l'on a en mémoire.</p>
 	 */
 	public void writeInFile(String folder){
 		Path path = Paths.get((folder.isEmpty()?"":folder+File.separator)+nom);
 		try {
 			if (!Files.exists(path)) {
-				System.out.println(path);
 				Files.createFile(path);
 			}
 			if (this.contenu != null) {
 				Files.write(path, this.contenu);
 			}
 		} catch (IOException e) { e.printStackTrace(); }
+	}
+	public void writeInFile(){
+		this.writeInFile("");
 	}
 }
