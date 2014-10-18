@@ -114,7 +114,7 @@ public class Server implements ServerInterface {
 	}
 
 	@Override
-	public Fichier lock(String nom, int clientid) throws RemoteException {
+	public synchronized Fichier lock(String nom, int clientid) throws RemoteException {
 		for (int i = 0; i < ListeFichiers.size(); i++) {
 			Fichier f = ListeFichiers.get(i);
 			if (f.getNomFichier().equals(nom)){ // Si on a le même nom de fichier, et si on arrive à locker le file c'est bon

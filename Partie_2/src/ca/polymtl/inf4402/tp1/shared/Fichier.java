@@ -13,8 +13,8 @@ import java.nio.file.Paths;
 /**
  * <p>Cette classe nous est très utile car elle nous permet d'avoir une classe pour gérer nos fichiers et leurs propriétés.</p>
  * <p>On pourra même écrire sur le disque dur le contenu du fichier pour le conserver autrement qu'en mémoire.</p>
- * <p>la classe n'est pas faite pour gérer l'arboressance. <br>
- * Cependant, pour un soucis de clarté dans l'organisation des fichiers sur notre serveur, on va pouvoir indiquer vers quel répertoire l'on souhaite enregistrer les fichiers.<br>
+ * <p>la classe n'est pas faite pour gérer l'arborescence. <br>
+ * Cependant, pour un souci de clarté dans l'organisation des fichiers sur notre serveur, on va pouvoir indiquer vers quel répertoire l'on souhaite enregistrer les fichiers.<br>
  * C'est au programme qui va utiliser les objets Fichiers de passer en argument un chemin vers le dossier dans lequel placer les fichiers.</p>
  * 
  * @author Antoine Giraud #1761581

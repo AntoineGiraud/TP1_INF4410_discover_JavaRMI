@@ -197,6 +197,21 @@ public class Client {
 		}
 		return stub;
 	}
+	private ServerInterface loadServerStub(String hostname, int port) {
+		ServerInterface stub = null;
+		try {
+			Registry registry = LocateRegistry.getRegistry(hostname, port);
+			stub = (ServerInterface) registry.lookup("server");
+		} catch (NotBoundException e) {
+			System.out.println("Erreur: Le nom '" + e.getMessage()
+					+ "' n'est pas défini dans le registre.");
+		} catch (AccessException e) {
+			System.out.println("Erreur: " + e.getMessage());
+		} catch (RemoteException e) {
+			System.out.println("Erreur: " + e.getMessage());
+		}
+		return stub;
+	}
 	
 	/**
 	 * <p>Fonction pour lire l'ID que l'on s'est vu attribuer par le serveur<br>
